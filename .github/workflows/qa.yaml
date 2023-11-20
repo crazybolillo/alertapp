@@ -1,0 +1,47 @@
+name: qa
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - '*'
+env:
+  GO_VERSION: '1.20'
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          version: ${{env.GO_VERSION}}
+      - name: Install Dependencies
+        run: |
+          go install honnef.co/go/tools/cmd/staticcheck@latest
+          go install github.com/kisielk/errcheck@latest
+          go install mvdan.cc/gofumpt@latest
+      - name: Go lints
+        run: |
+          go vet ./...
+          errcheck ./...
+          staticcheck ./...
+          test -z $(gofumpt -l .)
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          version: ${{env.GO_VERSION}}
+      - name: Run Tests
+        run: go test -cover ./...
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v4
+        with:
+          version: ${{env.GO_VERSION}}
+      - name: Build
+        run: go build
