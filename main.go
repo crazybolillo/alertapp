@@ -7,7 +7,7 @@ import (
 )
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	io.WriteString(w, "Hello World")
+	_, _ = io.WriteString(w, "Hello World")
 }
 
 func main() {
