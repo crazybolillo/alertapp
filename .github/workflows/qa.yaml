@@ -37,7 +37,7 @@ jobs:
         with:
           version: ${{env.GO_VERSION}}
       - name: Run Tests
-        run: go test -cover ./...
+        run: go test -covermode=atomic -coverprofile=.coverage.out ./...
       - name: SonarCloud Scan
         uses: sonarsource/sonarcloud-github-action@master
         env:
@@ -47,6 +47,8 @@ jobs:
           args: >
             -Dsonar.organization=crazybolillo
             -Dsonar.projectKey=crazybolillo_alertapp
+            -Dsonar.test.inclusions=**/*_test.go
+            -Dsonar.go.coverage.reportPaths=.coverage.out
   build:
     runs-on: ubuntu-latest
     steps:
