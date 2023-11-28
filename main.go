@@ -2,8 +2,10 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
+	"math/rand"
 	"net/http"
 	"strconv"
 	"time"
@@ -105,7 +107,20 @@ func indexHandler(store AlertStore) func(w http.ResponseWriter, r *http.Request)
 }
 
 func main() {
+	demo := flag.Bool("demo", false, "Use in-memory demo data")
+	flag.Parse()
+
 	storage := InMemoryAlertStore{}
+	if *demo {
+		for idx := 0; idx < (rand.Intn(20) + 10); idx++ {
+			now := time.Now()
+			storage.Store(Alert{
+				UUID: uuid.NewString(),
+				Time: &now,
+				Info: fmt.Sprintf("Mighty demo alert number %d", idx),
+			})
+		}
+	}
 
 	http.HandleFunc("/", indexHandler(&storage))
 	log.Fatal(http.ListenAndServe(":8080", nil))
