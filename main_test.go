@@ -66,7 +66,7 @@ func TestPostIndexHandler(t *testing.T) {
 	for _, data := range testData {
 		marshal, err := json.Marshal(data)
 		if err != nil {
-			t.Errorf("error while marshaling: %q", err)
+			t.Errorf("error while marshaling: %s", err)
 			continue
 		}
 
@@ -83,5 +83,36 @@ func TestPostIndexHandler(t *testing.T) {
 			t.Errorf("Alert not stored, expected %d, got %d", count, len(store.Storage))
 		}
 		count++
+	}
+}
+
+func TestPostIndexHandlerBadData(t *testing.T) {
+	store := InMemoryAlertStore{}
+	marshal, err := json.Marshal(`{"description": "highly illegal packet"}`)
+	if err != nil {
+		t.Fatalf("error while marshaling: %s", err)
+	}
+
+	req := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(marshal))
+	w := httptest.NewRecorder()
+
+	indexHandler(&store)(w, req)
+	res := w.Result()
+
+	if res.StatusCode != http.StatusBadRequest {
+		t.Errorf("Bad payload = %d, wanted %d", http.StatusBadRequest, res.StatusCode)
+	}
+}
+
+func TestIndexHandlerNotFound(t *testing.T) {
+	store := InMemoryAlertStore{}
+	req := httptest.NewRequest(http.MethodGet, "/magical/path", nil)
+	w := httptest.NewRecorder()
+
+	indexHandler(&store)(w, req)
+	res := w.Result()
+
+	if res.StatusCode != http.StatusNotFound {
+		t.Errorf("HTTP GET /magical/path = %d, wanted %d", http.StatusNotFound, res.StatusCode)
 	}
 }
