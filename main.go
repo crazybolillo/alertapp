@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
+	template2 "html/template"
 	"log"
 	"math/rand"
 	"net/http"
@@ -19,10 +20,17 @@ const (
 	AlertCountHttpHeader = "X-Alertapp-Count"
 )
 
+var indexTemplate *template2.Template
+
 type Alert struct {
 	UUID string     `json:",omitempty"`
 	Time *time.Time `json:",omitempty"`
 	Info string
+}
+
+type indexData struct {
+	IsEmpty bool
+	Alerts  []Alert
 }
 
 type AlertStore interface {
@@ -70,9 +78,10 @@ func indexGet(store AlertStore, w http.ResponseWriter, r *http.Request) {
 
 	alerts := store.Retrieve(page, size)
 	w.Header().Add(AlertCountHttpHeader, strconv.Itoa(len(alerts)))
-	for _, alert := range alerts {
-		_, _ = fmt.Fprintf(w, "UUID: %s --- %s --- %s\n", alert.UUID, alert.Time, alert.Info)
-	}
+	_ = indexTemplate.Execute(w, indexData{
+		IsEmpty: len(alerts) == 0,
+		Alerts:  alerts,
+	})
 }
 
 func indexPost(store AlertStore, w http.ResponseWriter, r *http.Request) {
@@ -106,6 +115,10 @@ func indexHandler(store AlertStore) func(w http.ResponseWriter, r *http.Request)
 	}
 }
 
+func init() {
+	indexTemplate = template2.Must(template2.New("index.gohtml").ParseFiles("web/index.gohtml"))
+}
+
 func main() {
 	demo := flag.Bool("demo", false, "Use in-memory demo data")
 	flag.Parse()
@@ -122,6 +135,7 @@ func main() {
 		}
 	}
 
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))
 	http.HandleFunc("/", indexHandler(&storage))
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
