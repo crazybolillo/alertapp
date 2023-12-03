@@ -119,20 +119,24 @@ func init() {
 	indexTemplate = template2.Must(template2.New("index.gohtml").ParseFiles("web/index.gohtml"))
 }
 
+func populate(min, max int, storage AlertStore) {
+	for idx := 0; idx < (rand.Intn(max-min) + min); idx++ {
+		now := time.Now()
+		storage.Store(Alert{
+			UUID: uuid.NewString(),
+			Time: &now,
+			Info: fmt.Sprintf("Mighty demo alert number %d", idx),
+		})
+	}
+}
+
 func main() {
 	demo := flag.Bool("demo", false, "Use in-memory demo data")
 	flag.Parse()
 
 	storage := InMemoryAlertStore{}
 	if *demo {
-		for idx := 0; idx < (rand.Intn(20) + 10); idx++ {
-			now := time.Now()
-			storage.Store(Alert{
-				UUID: uuid.NewString(),
-				Time: &now,
-				Info: fmt.Sprintf("Mighty demo alert number %d", idx),
-			})
-		}
+		populate(10, 20, &storage)
 	}
 
 	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("web/static"))))

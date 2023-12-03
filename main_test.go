@@ -116,3 +116,19 @@ func TestIndexHandlerNotFound(t *testing.T) {
 		t.Errorf("HTTP GET /magical/path = %d, wanted %d", http.StatusNotFound, res.StatusCode)
 	}
 }
+
+func TestPopulate(t *testing.T) {
+	min, max := 5, 10
+	for idx := 0; idx < 5; idx++ {
+		store := InMemoryAlertStore{}
+		populate(min, max, &store)
+
+		size := len(store.Storage)
+		if size < min {
+			t.Errorf("Wanted at least %d entries, got %d", min, size)
+		}
+		if size > max {
+			t.Errorf("Wanted at most %d entries, got %d", max, size)
+		}
+	}
+}
