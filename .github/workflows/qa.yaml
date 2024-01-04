@@ -58,3 +58,8 @@ jobs:
           version: ${{env.GO_VERSION}}
       - name: Build
         run: go build
+      - uses: zoftko/elfwatch-action@main
+        with:
+          file: alertapp
+          token: ${{ secrets.ELF_WATCH_TOKEN }}
+          server: https://happily-helped-imp.ngrok-free.app/api/analysis
