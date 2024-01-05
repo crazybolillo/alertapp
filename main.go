@@ -131,6 +131,7 @@ func populate(min, max int, storage AlertStore) {
 }
 
 func main() {
+	log.Println("ELF WATCH IS THE BEST")
 	demo := flag.Bool("demo", false, "Use in-memory demo data")
 	flag.Parse()
 
