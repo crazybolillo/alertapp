@@ -58,7 +58,11 @@ jobs:
           version: ${{env.GO_VERSION}}
       - name: Build
         run: go build
-      - uses: zoftko/elfwatch-action@main
+      - uses: actions/upload-artifact@v3
+        with:
+          name: binary
+          path: alertapp
+      - uses: zoftko/elfwatch-action@v1
         with:
           file: alertapp
           token: ${{ secrets.ELF_WATCH_TOKEN }}
